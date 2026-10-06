@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FloraFrost AI — Autumn Garden & Frost-Date Planting Planner</title>
+  <meta name="description" content="An offline-first autumn garden planner powered by Google Gemma 2. Tells gardeners and balcony growers what to plant this week based on local frost dates.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient Soil & Frost Glow Accents -->
+  <div class="ambient-glow glow-sprout"></div>
+  <div class="ambient-glow glow-frost"></div>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="logo-icon">
+        <span class="logo-sym">🌱</span>
+      </div>
+      <div>
+        <div class="brand-title">FloraFrost <span class="badge-tag">AI</span></div>
+        <div class="brand-subtitle">Autumn Garden Planner &bull; Touch Grass</div>
+      </div>
+    </div>
+
+    <div class="nav-controls">
+      <div class="status-pill" id="aiStatusPill" title="Connected open-weight model status">
+        <span class="status-dot"></span>
+        <span id="aiStatusText">Local Gemma 2 + Offline</span>
+      </div>
+
+      <button class="btn btn-secondary" id="btnModelSettings" title="Configure AI Model and Ollama Endpoint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>Model</span>
+      </button>
+
+      <button class="btn btn-secondary" id="btnExportPlan" title="Export Autumn Garden Plan">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Export</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-strip">
+    <div class="hero-content">
+      <div class="hero-tag">🍂 Hacktoberfest Week 1: Touch Grass Challenge</div>
+      <h1 class="hero-title">Get Off the Screen &bull; Put Your Hands in the <em>Soil</em></h1>
+      <p class="hero-desc">
+        Don't let autumn frost catch your plants unprepared. FloraFrost AI uses <strong>Google Gemma 2</strong> to turn local frost dates and your garden layout into a <strong>60-second action plan</strong> so you can spend hours outside gardening.
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Workstation Layout -->
+  <main class="main-container">
+    <!-- Left Column: Garden & Climate Configurator -->
+    <section class="card-panel planner-panel">
+      <div class="card-header">
+        <div class="card-title-group">
+          <span class="icon-bubble">🧤</span>
+          <div>
+            <h2 class="card-title">Garden Dispatcher</h2>
+            <p class="card-subtitle">Configure your growing space and frost timeline</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Growing Space Selector -->
+      <div class="form-section">
+        <label class="section-label">1. What is your growing setup?</label>
+        <div class="space-grid" id="spaceGrid">
+          <button class="choice-card active" data-space="balcony-containers">
+            <span class="choice-icon">🪴</span>
+            <span class="choice-name">Balcony Pots</span>
+            <span class="choice-desc">Containers &amp; railing planters</span>
+          </button>
+          <button class="choice-card" data-space="raised-beds">
+            <span class="choice-icon">🪵</span>
+            <span class="choice-name">Raised Garden Bed</span>
+            <span class="choice-desc">Deep soil, wooden frames</span>
+          </button>
+          <button class="choice-card" data-space="windowsill-herbs">
+            <span class="choice-icon">🪟</span>
+            <span class="choice-name">Windowsill Planters</span>
+            <span class="choice-desc">Compact herbs &amp; micro-greens</span>
+          </button>
+          <button class="choice-card" data-space="ground-plot">
+            <span class="choice-icon">🌾</span>
+            <span class="choice-name">In-Ground Garden</span>
+            <span class="choice-desc">Direct ground soil plot</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Frost Window Selector -->
+      <div class="form-section">
+        <label class="section-label">2. Estimated First Frost Timeline:</label>
+        <div class="frost-pills" id="frostPills">
+          <button class="pill-btn active" data-frost="2-weeks">❄️ 2 Weeks Away (Urgent Prep)</button>
+          <button class="pill-btn" data-frost="4-weeks">🍂 4 Weeks Away (Prime Planting)</button>
+          <button class="pill-btn" data-frost="6-weeks">☀️ 6+ Weeks Away (Mild Autumn)</button>
+        </div>
+      </div>
+
+      <!-- Sunlight Level -->
+      <div class="form-section">
+        <label class="section-label">3. Daily Sunlight Exposure:</label>
+        <div class="sun-chips" id="sunChips">
+          <button class="chip-btn active" data-sun="partial">⛅ Partial Sun (3-5 Hours)</button>
+          <button class="chip-btn" data-sun="full">☀️ Full Sun (6+ Hours)</button>
+          <button class="chip-btn" data-sun="shade">☁️ High Shade (&lt;3 Hours)</button>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="action-footer">
+        <button class="btn btn-primary btn-large" id="btnGeneratePlan">
+          <svg class="spin-icon hidden" id="genSpinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-linecap="round"></circle>
+          </svg>
+          <span id="genBtnText">Synthesize Autumn Action Plan</span>
+          <span class="btn-subtext">&bull; Powered by Gemma 2</span>
+        </button>
+      </div>
+
+      <!-- Frost Countdown Status Card -->
+      <div class="frost-countdown-card">
+        <div class="countdown-header">
+          <span class="frost-icon">❄️</span>
+          <div>
+            <div class="countdown-title">Cold Hardiness Advisory</div>
+            <div class="countdown-desc" id="frostAdvisoryText">Tender crops need frost cloth soon. Plant hardy alliums and brassicas now!</div>
+          </div>
+        </div>
+        <div class="countdown-metric">
+          <div class="metric-block">
+            <span class="metric-lbl">Target Soil Temp</span>
+            <span class="metric-val" id="soilTemp">10°C - 15°C</span>
+          </div>
+          <div class="metric-block">
+            <span class="metric-lbl">Frost Hazard</span>
+            <span class="metric-val text-yellow" id="hazardLevel">Moderate</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Interactive Plan & Outdoor Checklist -->
+    <section class="card-panel plan-panel">
+      <!-- Tabs -->
+      <div class="tab-header">
+        <button class="tab-btn active" data-tab="tab-action">
+          <span class="tab-icon">📋</span> This Week's Outdoor Tasks
+        </button>
+        <button class="tab-btn" data-tab="tab-crops">
+          <span class="tab-icon">🌱</span> Autumn Crop Catalog
+        </button>
+        <button class="tab-btn" data-tab="tab-log">
+          <span class="tab-icon">📔</span> Garden Journal (<span id="logCount">0</span>)
+        </button>
+      </div>
+
+      <!-- Tab 1: Weekly Outdoor Action Plan -->
+      <div class="tab-content active" id="tab-action">
+        <div class="plan-banner">
+          <div class="plan-meta-row">
+            <span class="plan-badge" id="spaceBadge">🪴 Balcony Pots</span>
+            <span class="plan-badge frost-badge" id="frostBadge">❄️ 2-4 Weeks to Frost</span>
+            <span class="plan-badge ai-badge" id="aiBadge">🧠 Gemma 2 Synthesized</span>
+          </div>
+          <h2 class="plan-title" id="planTitle">Autumn Rooting &amp; Cold-Hardy Sowing Window</h2>
+          <p class="plan-summary" id="planSummary">Your quick guide for October outdoor prep. Step outside, check your soil, and get these seeds planted before the ground freezes.</p>
+        </div>
+
+        <!-- Action Items Checklist -->
+        <div class="action-tasks-container">
+          <h3 class="tasks-heading">🌿 Hands-in-the-Dirt Checklist:</h3>
+          <div class="tasks-list" id="tasksList">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Companion Planting Tip -->
+        <div class="companion-tip-card">
+          <span class="tip-icon">💡</span>
+          <div>
+            <h4 class="tip-title">Companion Planting Pairing of the Week</h4>
+            <p class="tip-body" id="companionTipBody">
+              Plant <strong>Garlic Cloves</strong> alongside <strong>Spinach or Lettuce</strong>. The natural sulfur compounds emitted by garlic roots act as an organic deterrent against winter root rot and pests.
+            </p>
+          </div>
+        </div>
+
+        <!-- Log Completed Session -->
+        <div class="log-session-box">
+          <h3>🧤 Finished Gardening Outside? Log It Here:</h3>
+          <textarea id="logInput" placeholder="What seeds did you plant today? How damp was your soil? Write a quick note before going back inside..."></textarea>
+          <button class="btn btn-emerald" id="btnSaveLog">
+            <span>Log Outdoor Gardening Session</span> 🏆
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Autumn Crop Hardiness Catalog -->
+      <div class="tab-content" id="tab-crops">
+        <div class="crops-intro">
+          <h3>🍂 Cold-Hardy Vegetable &amp; Herb Catalog</h3>
+          <p>These crops thrive in cooler autumn temperatures and can survive light to moderate frost:</p>
+        </div>
+        <div class="crops-grid" id="cropsGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Tab 3: Garden Journal -->
+      <div class="tab-content" id="tab-log">
+        <div class="journal-header">
+          <div>
+            <h3>📔 Your Garden Journal &amp; Soil Logs</h3>
+            <p>Track your outdoor growing progress, harvest dates, and time spent outside.</p>
+          </div>
+          <div class="streak-badge">
+            <span class="streak-num" id="gardenStreak">1</span>
+            <span class="streak-lbl">Sessions Touched Dirt</span>
+          </div>
+        </div>
+        <div class="journal-feed" id="journalFeed">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Model Settings Modal -->
+  <div class="modal-backdrop hidden" id="modelModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚙️ Open-Weight Model Configuration</h3>
+        <button class="btn-close" id="btnCloseModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          FloraFrost AI connects to local open-source models via <strong>Ollama</strong> or any local OpenAI-compatible inference server. 100% offline student privacy.
+        </p>
+
+        <div class="form-group">
+          <label for="ollamaEndpoint">Ollama API Endpoint:</label>
+          <input type="text" id="ollamaEndpoint" value="http://localhost:11434/api/generate">
+          <span class="form-help">Default local endpoint for Ollama daemon</span>
+        </div>
+
+        <div class="form-group">
+          <label for="modelName">Local Model Name:</label>
+          <select id="modelName">
+            <option value="gemma2:2b" selected>Google Gemma 2 (2B) — Fast &amp; Light (Recommended)</option>
+            <option value="gemma2:9b">Google Gemma 2 (9B)</option>
+            <option value="llama3.2:3b">Meta Llama 3.2 (3B)</option>
+            <option value="heuristic">Built-in Semantic Gardening Engine (Offline Fallback)</option>
+          </select>
+        </div>
+
+        <div class="test-connection-box">
+          <button class="btn btn-secondary" id="btnTestOllama">Test Ollama Connection</button>
+          <span id="testResult" class="test-feedback"></span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnSaveModal">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
